@@ -1,6 +1,5 @@
 #pragma once
 #include "Common.h"
-#include <folly/Optional.h>
 
 namespace Turkey {
 class Client {

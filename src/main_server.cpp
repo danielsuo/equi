@@ -1,5 +1,3 @@
-
-#include "ProcReader.h"
 #include "Server.h"
 #include <atomic>
 #include <chrono>
@@ -14,7 +12,7 @@ std::atomic<bool> quit(false); // signal flag
 
 void got_signal(int) { quit.store(true); }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   // Set up signal handler.
   struct sigaction sa;
   memset(&sa, 0, sizeof(sa));
