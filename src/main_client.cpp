@@ -13,26 +13,26 @@
 #define PAD 256
 #define LINESIZE 64
 
-fptype* prices;
+fptype *prices;
 int numOptions;
 
-int* otype;
-fptype* sptprice;
-fptype* strike;
-fptype* rate;
-fptype* volatility;
-fptype* otime;
+int *otype;
+fptype *sptprice;
+fptype *strike;
+fptype *rate;
+fptype *volatility;
+fptype *otime;
 int numError = 0;
 int nThreads;
 
-int bs_thread(void* tid_ptr);
+int bs_thread(void *tid_ptr);
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   int loopnum;
   int rv;
   int i;
-  fptype* buffer;
-  int* buffer2;
+  fptype *buffer;
+  int *buffer2;
 
   if (argc != 3) {
     printf("Usage:\n\t%s <nthreads> <noptions>\n", argv[0]);
@@ -71,17 +71,17 @@ int main(int argc, char** argv) {
   printf("Num of Options: %d\n", numOptions);
   printf("Num of Runs: %d\n", NUM_RUNS);
 
-  prices = (fptype*)malloc(numOptions * sizeof(fptype));
+  prices = (fptype *)malloc(numOptions * sizeof(fptype));
 
-  buffer     = (fptype*)malloc(5 * numOptions * sizeof(fptype) + PAD);
-  sptprice   = (fptype*)(((unsigned long long)buffer + PAD) & ~(LINESIZE - 1));
+  buffer     = (fptype *)malloc(5 * numOptions * sizeof(fptype) + PAD);
+  sptprice   = (fptype *)(((unsigned long long)buffer + PAD) & ~(LINESIZE - 1));
   strike     = sptprice + numOptions;
   rate       = strike + numOptions;
   volatility = rate + numOptions;
   otime      = volatility + numOptions;
 
-  buffer2 = (int*)malloc(numOptions * sizeof(fptype) + PAD);
-  otype   = (int*)(((unsigned long long)buffer2 + PAD) & ~(LINESIZE - 1));
+  buffer2 = (int *)malloc(numOptions * sizeof(fptype) + PAD);
+  otype   = (int *)(((unsigned long long)buffer2 + PAD) & ~(LINESIZE - 1));
 
   for (i = 0; i < numOptions; i++) {
     otype[i]      = (option.OptionType == 'P') ? 1 : 0;
@@ -94,8 +94,8 @@ int main(int argc, char** argv) {
 
   printf("Size of data: %d\n", numOptions * (sizeof(OptionData) + sizeof(int)));
 
-  int* tids;
-  tids = (int*)malloc(nThreads * sizeof(int));
+  int *tids;
+  tids = (int *)malloc(nThreads * sizeof(int));
 
   for (i = 0; i < nThreads; i++) {
     tids[i] = i;
@@ -106,15 +106,15 @@ int main(int argc, char** argv) {
         if (threadsTableAllocated[i] == 0)
           break;
       }
-      pthread_create(&threadsTable[i], NULL, (void* (*)(void*))bs_thread,
-                     (void*)&tids[i]);
+      pthread_create(&threadsTable[i], NULL, (void *(*)(void *))bs_thread,
+                     (void *)&tids[i]);
       threadsTableAllocated[i] = 1;
     };
   }
 
   {
     int i;
-    void* ret;
+    void *ret;
     for (i = 0; i < MAX_THREADS; i++) {
       if (threadsTableAllocated[i] == 0)
         break;
@@ -130,11 +130,11 @@ int main(int argc, char** argv) {
   return 0;
 }
 
-int bs_thread(void* tid_ptr) {
+int bs_thread(void *tid_ptr) {
   int i, j;
   fptype price;
   fptype priceDelta;
-  int tid   = *(int*)tid_ptr;
+  int tid   = *(int *)tid_ptr;
   int start = tid * (numOptions / nThreads);
   int end   = start + (numOptions / nThreads);
 
