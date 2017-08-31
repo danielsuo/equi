@@ -21,3 +21,5 @@ typedef boost::interprocess::allocator<
 typedef boost::interprocess::map<boost::uuids::uuid, RecInfo,
                                  std::less<boost::uuids::uuid>, ShmemAllocator>
     RecMap;
+
+static constexpr char* kServerPIDString = "kServerPIDString";

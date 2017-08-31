@@ -1,10 +1,11 @@
 #pragma once
-#include "Common.h"
+#include "ClientState.h"
 
 namespace Turkey {
 class Client {
 public:
   explicit Client(size_t defaultRec);
+  ~Client();
 
   Client(const Client&) = delete;
   Client& operator=(const Client&) = delete;
@@ -12,9 +13,10 @@ public:
   size_t pollServer();
 
 private:
-  void registerWithServer();
-  boost::uuids::uuid id_;
+  ClientState state_;
   RecInfo rec_;
-  bool registered_ = false;
+  pid_t serverpid_;
+
+  void registerWithServer();
 };
 }

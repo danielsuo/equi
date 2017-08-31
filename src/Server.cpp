@@ -26,6 +26,8 @@ int someAlgorithm(int runnableThreads) {
 }
 } // anonymous
 Server::Server() {
+  pid_ = ::getpid();
+
   // Delete the shared memory object if one already exists
   named_mutex::remove("TurkeyMutex");
   shared_memory_object::remove("TurkeySharedMemory");
@@ -37,11 +39,15 @@ Server::Server() {
 
   {
     scoped_lock<named_mutex> lock(mutex);
+    segment.construct<pid_t>(kServerPIDString)(pid_);
+    std::cout << "PID: " << pid_ << std::endl;
     segment.construct<size_t>("DefaultRec")(kDefaultRec);
     segment.construct<RecMap>("RecMap")(std::less<boost::uuids::uuid>(),
                                         allocator);
   }
 }
+
+pid_t Server::getpid() { return pid_; }
 
 void Server::poll() {
   const auto runnableThreads = std::thread::hardware_concurrency();
@@ -57,6 +63,46 @@ void Server::poll() {
     *defaultRec     = newRec;
     LOG(INFO) << "rec: " << newRec;
   }
+}
+
+void Server::process_client(pid_t pid) {
+  for (int i = 0; i < clients_.size(); i++) {
+    if (clients_[i].pid == pid) {
+      // TODO: Remove client
+      remove_client(pid);
+      return;
+    }
+  }
+
+  register_client(pid);
+}
+
+void Server::register_client(pid_t pid) {
+  // TODO: Register client
+  // TODO: This is by no means atomic
+  ClientState client;
+  client.pid        = pid;
+  client.registered = true;
+  LOG(INFO) << "Registering client " << pid << " uuid: " << client.id;
+  clients_.push_back(client);
+
+  try {
+    managed_shared_memory segment(open_only, "TurkeySharedMemory");
+    named_mutex mutex(open_only, "TurkeyMutex");
+    scoped_lock<named_mutex> lock(mutex);
+
+    // TODO: Should probably have better naming than process id...
+    segment.construct<ClientState>(std::to_string(pid).c_str())(client);
+  } catch (const std::exception& ex) {
+    LOG(INFO) << "Interprocess exception: " << ex.what();
+    // TODO any remediation?
+  }
+}
+
+void Server::remove_client(pid_t pid) {
+  LOG(INFO) << "Removing client " << pid;
+
+  shared_memory_object::remove(std::to_string(pid).c_str());
 }
 
 Server::~Server() {

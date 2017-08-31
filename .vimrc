@@ -1,3 +1,2 @@
-:autocmd BufWritePost * silent! !mkdir -p build && cd build && cmake .. && make && cd ..
+nmap <leader>r :!mkdir -p build && cd build && cmake .. && make && cd ..<cr>
 
-nmap <leader>r :redraw!<cr>
