@@ -2,6 +2,7 @@
 #include <glog/logging.h>
 #include <glog/stl_logging.h>
 #include <iostream>
+#include <signal.h>
 #include <thread>
 
 using namespace boost::interprocess;
@@ -66,6 +67,7 @@ void Server::poll() {
 }
 
 void Server::process_client(pid_t pid) {
+  LOG(INFO) << "Processing client!";
   for (int i = 0; i < clients_.size(); i++) {
     if (clients_[i].pid == pid) {
       // TODO: Remove client
@@ -93,6 +95,10 @@ void Server::register_client(pid_t pid) {
 
     // TODO: Should probably have better naming than process id...
     segment.construct<ClientState>(std::to_string(pid).c_str())(client);
+
+    if (kill(pid, SIGINT) != 0) {
+      LOG(INFO) << "Failed to signal client";
+    }
   } catch (const std::exception& ex) {
     LOG(INFO) << "Interprocess exception: " << ex.what();
     // TODO any remediation?
